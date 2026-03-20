@@ -625,13 +625,28 @@ ${v.queries.map((q,i) => `${i+1}. "${q.q}" | Impressions: ${q.imp} | Clicks: ${q
 
     const data = await res.json();
 
-    // Gemini returns text at this path
-    const rawText = data.candidates[0].content.parts[0].text
-      .trim()
-      .replace(/```json|```/g, '')
-      .trim();
+// Extract text from Gemini's response structure
+const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
 
-    const diagnostics = JSON.parse(rawText);
+if (!rawText) {
+  throw new Error('Empty response from Gemini: ' + JSON.stringify(data));
+}
+
+// Strip any markdown fencing Gemini may have added
+const cleaned = rawText
+  .trim()
+  .replace(/^```json\s*/i, '')
+  .replace(/^```\s*/i, '')
+  .replace(/\s*```$/i, '')
+  .trim();
+
+// Find the JSON array even if there's text before or after it
+const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+if (!jsonMatch) {
+  throw new Error('No JSON array found in response: ' + cleaned.slice(0, 200));
+}
+
+const diagnostics = JSON.parse(jsonMatch[0]);
 
     document.getElementById('aiLoading').style.display = 'none';
     renderDiagnostics(diagnostics);
