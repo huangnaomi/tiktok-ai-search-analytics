@@ -647,11 +647,10 @@ let diagnostics;
 try {
   diagnostics = JSON.parse(cleaned);
 } catch(parseErr) {
-  // If direct parse fails, try extracting the array manually
   const start = cleaned.indexOf('[');
   const end = cleaned.lastIndexOf(']');
-  if (start === -1 || end === -1) {
-    throw new Error('No JSON array found in response: ' + cleaned.slice(0, 200));
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error('Response was truncated before finishing. Try again.');
   }
   diagnostics = JSON.parse(cleaned.slice(start, end + 1));
 }
