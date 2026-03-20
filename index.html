@@ -643,13 +643,18 @@ const cleaned = rawText
   .replace(/\s*```$/i, '')
   .trim();
 
-// Find the JSON array even if there's text before or after it
-const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
-if (!jsonMatch) {
-  throw new Error('No JSON array found in response: ' + cleaned.slice(0, 200));
+let diagnostics;
+try {
+  diagnostics = JSON.parse(cleaned);
+} catch(parseErr) {
+  // If direct parse fails, try extracting the array manually
+  const start = cleaned.indexOf('[');
+  const end = cleaned.lastIndexOf(']');
+  if (start === -1 || end === -1) {
+    throw new Error('No JSON array found in response: ' + cleaned.slice(0, 200));
+  }
+  diagnostics = JSON.parse(cleaned.slice(start, end + 1));
 }
-
-const diagnostics = JSON.parse(jsonMatch[0]);
 
     document.getElementById('aiLoading').style.display = 'none';
     renderDiagnostics(diagnostics);
