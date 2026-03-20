@@ -76,24 +76,36 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .search-pct{font-size:11px;font-weight:600;color:var(--blue);background:var(--blue-dim);padding:2px 7px;border-radius:3px;flex-shrink:0;white-space:nowrap;}
 
 /* ── METRICS ── */
-.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow);}
-.metric-card{background:var(--white);padding:18px 20px;}
-.metric-label{font-size:12px;font-weight:500;color:var(--text);margin-bottom:5px;}
+.metrics-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:visible;margin-bottom:18px;box-shadow:var(--shadow);}
+.metric-card{background:var(--white);}
+.metric-card-header{padding:12px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:5px;}
+.metric-card-body{padding:12px 18px 14px;}
+.metric-label{font-size:13px;font-weight:500;color:var(--text);}
 .metric-value{font-size:26px;font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:4px;color:var(--text);}
 .mv-red,.mv-blue,.mv-green,.mv-amber{color:var(--text);}
 .metric-sub{font-size:11px;color:var(--text3);}
 
 /* ── TWO COL ── */
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;}
-.panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
-.panel-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:14px;}
+.panel{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:visible;box-shadow:var(--shadow);}
+.panel-header{display:flex;align-items:center;gap:6px;padding:14px 18px;border-bottom:1px solid var(--border);line-height:1;}
+.panel-title{font-size:14px;font-weight:600;color:var(--text);}
+.panel-body{padding:16px 18px;}
 .bar-bg{flex:1;height:7px;background:#E8E8E9;border-radius:1px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:1px;}
 .comp-bar-bg{flex:1;height:7px;background:#E8E8E9;border-radius:1px;overflow:hidden;}
 .comp-bar-fill{height:100%;border-radius:1px;}
 
+/* ── INFO ICON & TOOLTIP ── */
+.info-icon{position:relative;display:inline-flex;align-items:center;justify-content:center;width:11px;height:11px;border-radius:50%;border:1.5px solid #0A0A0A;color:#0A0A0A;font-size:7px;font-weight:700;cursor:pointer;flex-shrink:0;font-style:normal;line-height:11px;text-align:center;transition:border-color 0.15s,color 0.15s;user-select:none;padding-top:1px;}
+.info-icon:hover{border-color:var(--blue);color:var(--blue);}
+.info-icon .tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#FDFDFD;color:#0A0A0A;border:1px solid #E8E8E9;font-size:12px;font-weight:400;line-height:1.55;padding:10px 13px;border-radius:6px;width:220px;z-index:1000;text-align:left;white-space:normal;box-shadow:0 2px 8px rgba(0,0,0,0.08);}
+.info-icon .tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#E8E8E9;}
+.info-icon .tooltip::before{content:'';position:absolute;top:calc(100% - 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#FDFDFD;z-index:1;}
+.info-icon.open .tooltip{display:block;}
+
 /* ── TABLE ── */
-.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px;box-shadow:var(--shadow);}
+.table-wrap{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);overflow:visible;margin-bottom:18px;box-shadow:var(--shadow);}
 .table-header-row{padding:13px 18px 11px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;}
 .table-title{font-size:14px;font-weight:700;color:var(--text);}
 .table-sub{font-size:12px;color:var(--text3);margin-top:2px;}
@@ -305,12 +317,18 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <!-- Two col -->
       <div class="two-col">
         <div class="panel">
-          <div class="panel-title">Traffic Sources</div>
-          <div id="trafficBars"></div>
+          <div class="panel-header">
+            <div class="panel-title">Traffic Sources</div>
+            <span class="info-icon" onclick="toggleTip(this)">i<div class="tooltip">Where viewers found this video. Search % shows how much of your audience discovered you through TikTok search rather than the For You Page.</div></span>
+          </div>
+          <div class="panel-body" id="trafficBars"></div>
         </div>
         <div class="panel">
-          <div class="panel-title">Search vs. FYP Viewers</div>
-          <div id="compBars"></div>
+          <div class="panel-header">
+            <div class="panel-title">Search vs. FYP Viewers</div>
+            <span class="info-icon" onclick="toggleTip(this)">i<div class="tooltip">Compares how viewers who found you via Search behave versus those from the For You Page. Search viewers typically watch longer and follow at higher rates.</div></span>
+          </div>
+          <div class="panel-body" id="compBars"></div>
         </div>
       </div>
 
@@ -318,7 +336,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
       <div class="table-wrap">
         <div class="table-header-row">
           <div>
-            <div class="table-title">Queries Finding This Video</div>
+            <div style="display:flex;align-items:center;gap:6px;line-height:1;">
+              <div class="table-title">Queries Finding This Video</div>
+              <span class="info-icon" style="margin-top:1px;" onclick="toggleTip(this)">i<div class="tooltip">Search terms that led people to this video. Tags: top = strong performer, gap = high impressions but low clicks, new = recently started sending traffic.</div></span>
+            </div>
             <div class="table-sub">Click any number to edit live — AI re-reads current values on every run</div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;">
@@ -475,11 +496,23 @@ function selectVideo(i) {
 function render() {
   const v = live[cur];
 
+  const metricInfo = {
+    "Search Views": "Total views that came from TikTok search results. Higher = your content is being discovered organically through search.",
+    "Impressions": "How many times your video appeared in search results. High impressions with low clicks means your title or thumbnail may need updating.",
+    "Avg Search CTR": "Click-through rate from search — the % of people who saw your video in results and clicked it. Healthy range is 6–10%.",
+    "Ranking Queries": "Number of distinct search terms this video ranks for. More queries = broader search reach."
+  };
+
   document.getElementById('metricsGrid').innerHTML = v.metrics.map(m => `
     <div class="metric-card">
-      <div class="metric-label">${m.label}</div>
-      <div class="metric-value">${m.value}</div>
-      <div class="metric-sub">${m.sub}</div>
+      <div class="metric-card-header">
+        <div class="metric-label">${m.label}</div>
+        <span class="info-icon" onclick="toggleTip(this)">i<div class="tooltip">${metricInfo[m.label] || ''}</div></span>
+      </div>
+      <div class="metric-card-body">
+        <div class="metric-value">${m.value}</div>
+        <div class="metric-sub">${m.sub}</div>
+      </div>
     </div>`).join('');
 
   document.getElementById('trafficBars').innerHTML = v.traffic.map(t => `
@@ -700,6 +733,18 @@ ${v.queries.map((q,i) => `${i+1}. "${q.q}" | Impressions: ${q.imp} | Clicks: ${q
     btn.disabled = false;
   }
 }
+
+// ─── TOOLTIP ──────────────────────────────────────────────────────────────────
+function toggleTip(el) {
+  const isOpen = el.classList.contains('open');
+  document.querySelectorAll('.info-icon.open').forEach(e => e.classList.remove('open'));
+  if (!isOpen) el.classList.add('open');
+}
+document.addEventListener('click', function(e) {
+  if (!e.target.closest('.info-icon')) {
+    document.querySelectorAll('.info-icon.open').forEach(e => e.classList.remove('open'));
+  }
+});
 
 render();
 </script>
