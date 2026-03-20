@@ -624,6 +624,8 @@ ${v.queries.map((q,i) => `${i+1}. "${q.q}" | Impressions: ${q.imp} | Clicks: ${q
     });
 
     const data = await res.json();
+    console.log('Gemini raw response:', JSON.stringify(data));
+    document.getElementById('rawDump') && (document.getElementById('rawDump').textContent = JSON.stringify(data).slice(0, 500));
 
 // Gemini 2.5 Flash returns thinking in parts[0] — get the LAST part which has the actual answer
 const parts = data?.candidates?.[0]?.content?.parts ?? [];
@@ -658,8 +660,11 @@ const diagnostics = JSON.parse(jsonMatch[0]);
     document.getElementById('aiLoading').style.display = 'none';
     document.getElementById('aiResults').innerHTML = `
       <div class="diagnosis-card dc-neutral">
-        <div class="dc-header"><span class="dc-icon">⚠️</span><span class="dc-type">Connection Error</span></div>
-        <div class="dc-content">Could not reach the AI service. Make sure the project is deployed on Vercel and the GEMINI_API_KEY environment variable is set.</div>
+        <div class="dc-header"><span class="dc-icon">⚠️</span><span class="dc-type">Debug Info</span></div>
+        <div class="dc-content">
+          <strong>Error:</strong> ${err.message}<br><br>
+          <strong>Raw response:</strong> <span id="rawDump" style="font-family:monospace;font-size:10px;word-break:break-all;"></span>
+        </div>
       </div>`;
     document.getElementById('aiResults').classList.add('on');
     btn.disabled = false;
