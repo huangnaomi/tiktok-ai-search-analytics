@@ -34,7 +34,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,7 +51,7 @@ export default async function handler(req, res) {
           ],
           generationConfig: {
             temperature: 0.4,   // lower = more consistent, data-focused responses
-            maxOutputTokens: 2000
+            maxOutputTokens: 1000
           }
         })
       }
