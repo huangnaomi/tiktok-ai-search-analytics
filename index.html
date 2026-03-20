@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TikTok Studio — AI Search Diagnostics</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0f; --sidebar: #111115; --surface: #18181d;
+  --surface2: #1e1e24; --surface3: #26262e;
+  --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.04);
+  --text: #ededf5; --text2: #9898b8; --text3: #55556a;
+  --tiktok: #ff2d55; --tiktok-dim: rgba(255,45,85,0.1);
+  --cyan: #00d4ff; --cyan-dim: rgba(0,212,255,0.08);
+  --green: #22d68a; --green-dim: rgba(34,214,138,0.08);
+  --amber: #f5a623; --amber-dim: rgba(245,166,35,0.08);
+  --ai: #a78bfa; --ai-dim: rgba(167,139,250,0.1); --ai-border: rgba(167,139,250,0.25);
+  --edit: #00d4ff; --edit-dim: rgba(0,212,255,0.08);
+  --font: 'Plus Jakarta Sans', sans-serif; --mono: 'JetBrains Mono', monospace;
+  --radius: 10px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:var(--font); background:var(--bg); color:var(--text); min-height:100vh; }
+.shell { display:flex; height:100vh; overflow:hidden; }
+
+/* SIDEBAR */
+.sidebar { width:210px; flex-shrink:0; background:var(--sidebar); border-right:1px solid var(--border); display:flex; flex-direction:column; padding:18px 0; }
+.logo { display:flex; align-items:center; gap:10px; padding:0 16px 18px; border-bottom:1px solid var(--border); margin-bottom:10px; }
+.logo-icon { width:26px; height:26px; border-radius:6px; background:var(--tiktok); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; color:#fff; }
+.logo-text { font-size:12px; font-weight:700; }
+.logo-text span { color:var(--text3); font-weight:400; }
+.nav-group { padding:10px 10px 2px; }
+.nav-group-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--text3); padding:0 6px; margin-bottom:4px; }
+.nav-item { display:flex; align-items:center; gap:8px; padding:7px 8px; border-radius:6px; font-size:12px; font-weight:500; color:var(--text2); cursor:pointer; transition:all 0.12s; margin-bottom:1px; }
+.nav-item:hover { background:var(--surface2); color:var(--text); }
+.nav-item.active { background:var(--tiktok-dim); color:var(--tiktok); }
+.nav-icon { font-size:13px; width:16px; text-align:center; }
+
+/* MAIN */
+.main { flex:1; overflow-y:auto; display:flex; flex-direction:column; }
+.page-header { padding:24px 28px 0; border-bottom:1px solid var(--border); flex-shrink:0; }
+.breadcrumb { font-family:var(--mono); font-size:10px; color:var(--text3); letter-spacing:0.5px; margin-bottom:10px; }
+.breadcrumb span { color:var(--text2); }
+.page-title { font-size:20px; font-weight:800; letter-spacing:-0.5px; margin-bottom:16px; }
+.tabs { display:flex; }
+.tab { padding:9px 16px; font-size:12px; font-weight:600; color:var(--text3); cursor:pointer; border-bottom:2px solid transparent; transition:all 0.12s; }
+.tab:hover { color:var(--text2); }
+.tab.active { color:var(--tiktok); border-bottom-color:var(--tiktok); }
+.new-pill { display:inline-block; background:var(--tiktok); color:#fff; font-size:8px; font-weight:700; padding:1px 4px; border-radius:2px; margin-left:5px; vertical-align:middle; letter-spacing:0.5px; }
+.content { padding:24px 28px; flex:1; }
+
+/* VIDEO CARDS */
+.video-selector-label { font-family:var(--mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text3); margin-bottom:10px; }
+.video-cards { display:flex; gap:10px; margin-bottom:24px; flex-wrap:wrap; }
+.video-card { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; transition:all 0.15s; flex:1; min-width:220px; max-width:340px; }
+.video-card:hover { border-color:rgba(255,255,255,0.12); }
+.video-card.selected { border-color:var(--tiktok); background:var(--tiktok-dim); }
+.video-thumb-mini { width:36px; height:48px; border-radius:5px; flex-shrink:0; overflow:hidden; position:relative; }
+.vt-bg { position:absolute; inset:0; }
+.vt-bg.v1 { background:linear-gradient(135deg,#1a1a2e,#16213e); }
+.vt-bg.v2 { background:linear-gradient(135deg,#0d3b2e,#0a5c2e); }
+.vt-bg.v3 { background:linear-gradient(135deg,#2d1b4e,#4a1942); }
+.vt-play { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:10px; }
+.video-card-info { flex:1; min-width:0; }
+.video-card-title { font-size:12px; font-weight:600; line-height:1.3; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.video-card-meta { font-family:var(--mono); font-size:9px; color:var(--text3); }
+.search-badge { font-family:var(--mono); font-size:10px; font-weight:700; color:var(--tiktok); background:var(--tiktok-dim); padding:2px 7px; border-radius:3px; flex-shrink:0; }
+
+/* METRICS */
+.metrics-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px; }
+.metric-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; position:relative; overflow:hidden; }
+.metric-card::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; }
+.mc-red::after { background:var(--tiktok); }
+.mc-cyan::after { background:var(--cyan); }
+.mc-green::after { background:var(--green); }
+.mc-amber::after { background:var(--amber); }
+.metric-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text3); margin-bottom:6px; }
+.metric-value { font-size:24px; font-weight:800; letter-spacing:-1px; line-height:1; margin-bottom:4px; }
+.mc-red .metric-value { color:var(--tiktok); }
+.mc-cyan .metric-value { color:var(--cyan); }
+.mc-green .metric-value { color:var(--green); }
+.mc-amber .metric-value { color:var(--amber); }
+.metric-sub { font-size:10px; color:var(--text3); }
+
+/* TWO COL */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+.panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px; }
+.panel-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--text3); margin-bottom:14px; }
+.source-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+.source-name { font-size:11px; color:var(--text2); width:52px; flex-shrink:0; text-align:right; }
+.source-name.hl { color:var(--tiktok); font-weight:700; }
+.bar-bg { flex:1; height:6px; background:var(--surface3); border-radius:3px; overflow:hidden; }
+.bar-fill { height:100%; border-radius:3px; }
+.source-val { font-family:var(--mono); font-size:10px; color:var(--text2); width:32px; text-align:right; }
+.source-val.hl { color:var(--tiktok); font-weight:600; }
+.comp-group { margin-bottom:12px; }
+.comp-label { font-size:10px; color:var(--text3); margin-bottom:5px; font-weight:600; }
+.comp-row { display:flex; align-items:center; gap:7px; margin-bottom:4px; }
+.comp-src { font-family:var(--mono); font-size:9px; color:var(--text3); width:38px; text-align:right; flex-shrink:0; }
+.comp-bar-bg { flex:1; height:5px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+.comp-bar-fill { height:100%; border-radius:2px; }
+.comp-val { font-family:var(--mono); font-size:10px; width:34px; text-align:right; }
+
+/* TABLE */
+.table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:18px; }
+.table-header-row { padding:14px 16px 10px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.edit-hint { display:flex; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; color:var(--edit); background:var(--edit-dim); border:1px solid rgba(0,212,255,0.15); padding:4px 9px; border-radius:4px; }
+.modified-badge { display:none; align-items:center; gap:5px; font-family:var(--mono); font-size:9px; color:var(--amber); background:var(--amber-dim); border:1px solid rgba(245,166,35,0.2); padding:4px 9px; border-radius:4px; margin-right:6px; }
+.modified-badge.on { display:flex; }
+.reset-btn { background:none; border:none; color:var(--amber); font-family:var(--mono); font-size:9px; cursor:pointer; text-decoration:underline; padding:0; margin-left:4px; }
+.table-head { display:grid; grid-template-columns:2fr 1fr 1fr 0.8fr 0.8fr; padding:10px 16px; background:var(--surface2); border-bottom:1px solid var(--border); }
+.th { font-family:var(--mono); font-size:9px; letter-spacing:1px; text-transform:uppercase; color:var(--text3); }
+.t-row { display:grid; grid-template-columns:2fr 1fr 1fr 0.8fr 0.8fr; padding:10px 16px; border-bottom:1px solid var(--border2); align-items:center; transition:background 0.1s; }
+.t-row:last-child { border-bottom:none; }
+.t-row:hover { background:var(--surface2); }
+.q-cell { display:flex; align-items:center; gap:8px; }
+.q-num { font-family:var(--mono); font-size:10px; color:var(--text3); width:16px; }
+.q-text { font-size:12px; font-weight:500; }
+.q-tag { font-size:8px; font-weight:700; padding:2px 5px; border-radius:2px; letter-spacing:0.5px; text-transform:uppercase; }
+.tag-gap { background:var(--tiktok-dim); color:var(--tiktok); }
+.tag-top { background:var(--cyan-dim); color:var(--cyan); }
+.tag-new { background:var(--green-dim); color:var(--green); }
+.td { font-family:var(--mono); font-size:11px; font-weight:500; }
+
+/* EDITABLE */
+.editable { display:inline-block; border-bottom:1px dashed rgba(0,212,255,0.3); padding:1px 3px; border-radius:2px; cursor:text; outline:none; transition:all 0.15s; min-width:20px; font-family:var(--mono); }
+.editable:hover { background:var(--edit-dim); border-bottom-color:var(--edit); }
+.editable:focus { background:rgba(0,212,255,0.12); border-bottom:1px solid var(--edit); }
+.editable.changed { color:var(--edit) !important; border-bottom-color:var(--edit); }
+.ctr-cell { display:flex; align-items:center; gap:6px; }
+.ctr-mini { flex:1; height:3px; background:var(--surface3); border-radius:1px; overflow:hidden; max-width:60px; }
+.ctr-fill { height:100%; border-radius:1px; transition:width 0.25s, background 0.25s; }
+.rank-badge { font-family:var(--mono); font-size:9px; font-weight:700; padding:2px 7px; border-radius:3px; }
+.r-top3  { background:var(--cyan-dim);  color:var(--cyan);  }
+.r-top10 { background:var(--green-dim); color:var(--green); }
+.r-top25 { background:var(--amber-dim); color:var(--amber); }
+
+/* AI SECTION */
+.ai-section { background:var(--surface); border:1px solid var(--ai-border); border-radius:var(--radius); overflow:hidden; }
+.ai-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; background:linear-gradient(90deg,rgba(167,139,250,0.06),transparent); border-bottom:1px solid var(--ai-border); }
+.ai-header-left { display:flex; align-items:center; gap:10px; }
+.ai-icon { width:28px; height:28px; border-radius:6px; background:var(--ai-dim); border:1px solid var(--ai-border); display:flex; align-items:center; justify-content:center; font-size:14px; }
+.ai-title { font-size:13px; font-weight:700; color:var(--ai); }
+.ai-subtitle { font-size:11px; color:var(--text3); margin-top:1px; }
+.ai-btn-group { display:flex; align-items:center; gap:10px; }
+.rerun-note { font-family:var(--mono); font-size:9px; color:var(--amber); display:none; }
+.rerun-note.on { display:block; }
+.analyze-btn { display:flex; align-items:center; gap:8px; padding:9px 18px; border-radius:6px; background:var(--ai); color:var(--bg); font-family:var(--font); font-size:12px; font-weight:700; border:none; cursor:pointer; transition:all 0.15s; }
+.analyze-btn:hover { opacity:0.9; transform:translateY(-1px); }
+.analyze-btn:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+.ai-body { padding:20px; }
+.ai-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; text-align:center; }
+.ai-placeholder-icon { font-size:32px; margin-bottom:12px; opacity:0.4; }
+.ai-placeholder-text { font-size:13px; color:var(--text3); line-height:1.6; max-width:320px; }
+.ai-loading { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; gap:16px; }
+.loading-dots { display:flex; gap:6px; }
+.loading-dot { width:6px; height:6px; border-radius:50%; background:var(--ai); opacity:0.3; animation:pulse 1.2s ease-in-out infinite; }
+.loading-dot:nth-child(2) { animation-delay:0.2s; }
+.loading-dot:nth-child(3) { animation-delay:0.4s; }
+@keyframes pulse { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:1;transform:scale(1.3)} }
+.loading-text { font-size:12px; color:var(--text3); font-family:var(--mono); }
+.ai-results { display:none; flex-direction:column; gap:14px; }
+.ai-results.on { display:flex; }
+.diagnosis-card { border-radius:8px; padding:16px; border-left:3px solid; animation:slideUp 0.4s ease both; }
+.diagnosis-card:nth-child(2){animation-delay:0.08s}
+.diagnosis-card:nth-child(3){animation-delay:0.16s}
+@keyframes slideUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.dc-problem    { background:rgba(255,45,85,0.06);   border-color:var(--tiktok); }
+.dc-positive   { background:rgba(34,214,138,0.06);  border-color:var(--green);  }
+.dc-opportunity{ background:rgba(167,139,250,0.06); border-color:var(--ai);     }
+.dc-neutral    { background:rgba(245,166,35,0.06);  border-color:var(--amber);  }
+.dc-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; }
+.dc-icon { font-size:14px; }
+.dc-type { font-family:var(--mono); font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; }
+.dc-problem .dc-type    { color:var(--tiktok); }
+.dc-positive .dc-type   { color:var(--green);  }
+.dc-opportunity .dc-type{ color:var(--ai);     }
+.dc-neutral .dc-type    { color:var(--amber);  }
+.dc-content { font-size:13px; line-height:1.65; color:var(--text2); }
+.dc-content strong { color:var(--text); }
+.dc-action { margin-top:10px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.06); font-size:12px; color:var(--text3); line-height:1.5; }
+.dc-action strong { color:var(--tiktok); }
+.ai-footer { display:flex; align-items:center; gap:6px; padding:10px 20px; border-top:1px solid var(--ai-border); background:rgba(167,139,250,0.03); }
+.ai-footer-text { font-family:var(--mono); font-size:9px; color:var(--text3); }
+.ai-footer-dot { width:4px; height:4px; border-radius:50%; background:var(--ai); opacity:0.5; }
+
+::-webkit-scrollbar{width:5px} ::-webkit-scrollbar-track{background:transparent} ::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:3px}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.metrics-grid{animation:fadeIn 0.2s ease both}
+.two-col{animation:fadeIn 0.2s ease 0.04s both}
+.table-wrap{animation:fadeIn 0.2s ease 0.08s both}
+.ai-section{animation:fadeIn 0.2s ease 0.12s both}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <div class="sidebar">
+    <div class="logo">
+      <div class="logo-icon">T</div>
+      <div class="logo-text">TikTok <span>Studio</span></div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Content</div>
+      <div class="nav-item"><span class="nav-icon">◻</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">▶</span> Posts</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Insights</div>
+      <div class="nav-item active"><span class="nav-icon">◈</span> Analytics</div>
+      <div class="nav-item"><span class="nav-icon">◎</span> Rewards</div>
+    </div>
+    <div class="nav-group">
+      <div class="nav-group-label">Grow</div>
+      <div class="nav-item"><span class="nav-icon">⊛</span> Creator Search</div>
+      <div class="nav-item"><span class="nav-icon">◇</span> Promote</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-header">
+      <div class="breadcrumb">Analytics <span>/ Search / Video Detail</span></div>
+      <div class="page-title">Search Analytics</div>
+      <div class="tabs">
+        <div class="tab">Overview</div>
+        <div class="tab">Content</div>
+        <div class="tab active">Search <span class="new-pill">NEW</span></div>
+        <div class="tab">Followers</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="video-selector-label">Select a video to analyze</div>
+      <div class="video-cards">
+        <div class="video-card selected" onclick="selectVideo(0)">
+          <div class="video-thumb-mini"><div class="vt-bg v1"></div><div class="vt-play">▶</div></div>
+          <div class="video-card-info">
+            <div class="video-card-title">Sourdough starter from scratch 🍞</div>
+            <div class="video-card-meta">Jan 12 · 4:22 · 284K views</div>
+          </div>
+          <div class="search-badge">38% 🔍</div>
+        </div>
+        <div class="video-card" onclick="selectVideo(1)">
+          <div class="video-thumb-mini"><div class="vt-bg v2"></div><div class="vt-play">▶</div></div>
+          <div class="video-card-info">
+            <div class="video-card-title">5 sourdough mistakes beginners make</div>
+            <div class="video-card-meta">Feb 3 · 3:45 · 142K views</div>
+          </div>
+          <div class="search-badge">61% 🔍</div>
+        </div>
+        <div class="video-card" onclick="selectVideo(2)">
+          <div class="video-thumb-mini"><div class="vt-bg v3"></div><div class="vt-play">▶</div></div>
+          <div class="video-card-info">
+            <div class="video-card-title">Scoring sourdough — the secret technique</div>
+            <div class="video-card-meta">Mar 1 · 2:18 · 89K views</div>
+          </div>
+          <div class="search-badge">14% 🔍</div>
+        </div>
+      </div>
+
+      <div class="metrics-grid" id="metricsGrid"></div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-title">Traffic Sources</div>
+          <div id="trafficBars"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-title">Search vs. FYP Viewers</div>
+          <div id="compBars"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header-row">
+          <div>
+            <div style="font-size:13px;font-weight:700;">Queries Finding This Video</div>
+            <div style="font-size:11px;color:var(--text3);margin-top:2px;">Click any number to edit live — AI re-reads current values on every run</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div class="modified-badge" id="modBadge">● Data modified <button class="reset-btn" onclick="resetDefaults()">Reset</button></div>
+            <div class="edit-hint">✎ Click any number to edit</div>
+          </div>
+        </div>
+        <div class="table-head">
+          <div class="th">Query</div>
+          <div class="th">Impressions</div>
+          <div class="th">Clicks</div>
+          <div class="th">CTR</div>
+          <div class="th">Rank</div>
+        </div>
+        <div id="queryTable"></div>
+      </div>
+
+      <div class="ai-section">
+        <div class="ai-header">
+          <div class="ai-header-left">
+            <div class="ai-icon">✦</div>
+            <div>
+              <div class="ai-title">AI Search Diagnostics</div>
+              <div class="ai-subtitle">Powered by Gemini · Reads live data on every run</div>
+            </div>
+          </div>
+          <div class="ai-btn-group">
+            <div class="rerun-note" id="rerunNote">Data changed — re-run for updated diagnosis</div>
+            <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">
+              <span>✦</span> Run Diagnosis
+            </button>
+          </div>
+        </div>
+        <div class="ai-body">
+          <div class="ai-placeholder" id="aiPlaceholder">
+            <div class="ai-placeholder-icon">✦</div>
+            <div class="ai-placeholder-text">Click "Run Diagnosis" to analyze your data. Try editing a CTR number first, then run — the diagnosis will change based on whatever values are currently showing.</div>
+          </div>
+          <div class="ai-loading" id="aiLoading" style="display:none;">
+            <div class="loading-dots">
+              <div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div>
+            </div>
+            <div class="loading-text">Reading current data...</div>
+          </div>
+          <div class="ai-results" id="aiResults"></div>
+        </div>
+        <div class="ai-footer">
+          <div class="ai-footer-dot"></div>
+          <div class="ai-footer-text">Edit any number in the table · Click Run Diagnosis · Watch the AI diagnosis update in real time</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const defaultData = [
+  {
+    title:"Sourdough starter from scratch 🍞", date:"Jan 12, 2026", duration:"4:22",
+    metrics:[
+      {label:"Search Views",    value:"107K",  sub:"38% of total views",   cls:"mc-red"},
+      {label:"Impressions",     value:"1.44M", sub:"Times shown in search", cls:"mc-cyan"},
+      {label:"Avg Search CTR",  value:"7.4%",  sub:"Above 6–8% benchmark", cls:"mc-green"},
+      {label:"Ranking Queries", value:"12",    sub:"Distinct queries",      cls:"mc-amber"},
+    ],
+    traffic:[
+      {name:"FYP",       pct:58, color:"rgba(255,255,255,0.2)"},
+      {name:"Search",    pct:38, color:"var(--tiktok)", hl:true},
+      {name:"Following", pct:3,  color:"rgba(255,255,255,0.1)"},
+      {name:"Other",     pct:1,  color:"rgba(255,255,255,0.08)"},
+    ],
+    comp:[
+      {label:"Completion Rate", s:{v:"78%",  p:78}, f:{v:"52%",  p:52}},
+      {label:"Follow Rate",     s:{v:"3.2%", p:64}, f:{v:"1.2%", p:24}},
+      {label:"Avg Watch Time",  s:{v:"3:28", p:82}, f:{v:"2:16", p:54}},
+      {label:"Save Rate",       s:{v:"8.9%", p:89}, f:{v:"2.8%", p:28}},
+    ],
+    queries:[
+      {q:"sourdough starter from scratch", tag:"top", imp:"328,400", clk:"24,100", ctr:7.3, rank:"top3"},
+      {q:"how to make sourdough bread",    tag:"gap", imp:"241,200", clk:"6,800",  ctr:2.8, rank:"top25"},
+      {q:"beginner sourdough guide",       tag:null,  imp:"187,900", clk:"15,200", ctr:8.1, rank:"top3"},
+      {q:"sourdough starter not rising",   tag:"new", imp:"142,600", clk:"11,400", ctr:8.0, rank:"top10"},
+      {q:"sourdough bread easy recipe",    tag:null,  imp:"98,300",  clk:"1,570",  ctr:1.6, rank:"top25"},
+    ],
+  },
+  {
+    title:"5 sourdough mistakes beginners make", date:"Feb 3, 2026", duration:"3:45",
+    metrics:[
+      {label:"Search Views",    value:"86K",  sub:"61% of total views",   cls:"mc-red"},
+      {label:"Impressions",     value:"980K", sub:"Times shown in search", cls:"mc-cyan"},
+      {label:"Avg Search CTR",  value:"8.8%", sub:"Above 6–8% benchmark", cls:"mc-green"},
+      {label:"Ranking Queries", value:"19",   sub:"Distinct queries",      cls:"mc-amber"},
+    ],
+    traffic:[
+      {name:"FYP",       pct:34, color:"rgba(255,255,255,0.2)"},
+      {name:"Search",    pct:61, color:"var(--tiktok)", hl:true},
+      {name:"Following", pct:4,  color:"rgba(255,255,255,0.1)"},
+      {name:"Other",     pct:1,  color:"rgba(255,255,255,0.08)"},
+    ],
+    comp:[
+      {label:"Completion Rate", s:{v:"84%",   p:84}, f:{v:"49%",  p:49}},
+      {label:"Follow Rate",     s:{v:"4.1%",  p:82}, f:{v:"0.9%", p:18}},
+      {label:"Avg Watch Time",  s:{v:"3:08",  p:74}, f:{v:"1:48", p:43}},
+      {label:"Save Rate",       s:{v:"12.4%", p:100},f:{v:"1.9%", p:15}},
+    ],
+    queries:[
+      {q:"sourdough mistakes beginners",    tag:"top", imp:"412,100", clk:"38,200", ctr:9.3, rank:"top3"},
+      {q:"why is my sourdough dense",       tag:null,  imp:"298,400", clk:"27,100", ctr:9.1, rank:"top3"},
+      {q:"sourdough troubleshooting guide", tag:"new", imp:"187,200", clk:"14,400", ctr:7.7, rank:"top10"},
+      {q:"sourdough not rising fix",        tag:null,  imp:"142,800", clk:"3,200",  ctr:2.2, rank:"top25"},
+      {q:"common bread baking errors",      tag:"gap", imp:"98,600",  clk:"1,100",  ctr:1.1, rank:"top25"},
+    ],
+  },
+  {
+    title:"Scoring sourdough — the secret technique", date:"Mar 1, 2026", duration:"2:18",
+    metrics:[
+      {label:"Search Views",    value:"12K",  sub:"14% of total views",    cls:"mc-red"},
+      {label:"Impressions",     value:"204K", sub:"Times shown in search",  cls:"mc-cyan"},
+      {label:"Avg Search CTR",  value:"5.9%", sub:"Just below 6–8% range", cls:"mc-amber"},
+      {label:"Ranking Queries", value:"4",    sub:"Distinct queries",       cls:"mc-amber"},
+    ],
+    traffic:[
+      {name:"FYP",       pct:82, color:"rgba(255,255,255,0.2)"},
+      {name:"Search",    pct:14, color:"var(--tiktok)", hl:true},
+      {name:"Following", pct:3,  color:"rgba(255,255,255,0.1)"},
+      {name:"Other",     pct:1,  color:"rgba(255,255,255,0.08)"},
+    ],
+    comp:[
+      {label:"Completion Rate", s:{v:"71%",  p:71}, f:{v:"68%",  p:68}},
+      {label:"Follow Rate",     s:{v:"1.8%", p:36}, f:{v:"1.5%", p:30}},
+      {label:"Avg Watch Time",  s:{v:"1:38", p:39}, f:{v:"1:33", p:37}},
+      {label:"Save Rate",       s:{v:"6.2%", p:62}, f:{v:"5.4%", p:54}},
+    ],
+    queries:[
+      {q:"how to score sourdough bread",     tag:"top", imp:"118,400", clk:"7,800", ctr:6.6, rank:"top10"},
+      {q:"sourdough scoring patterns",       tag:null,  imp:"62,100",  clk:"4,200", ctr:6.8, rank:"top10"},
+      {q:"bread scoring technique beginner", tag:"gap", imp:"44,800",  clk:"1,200", ctr:2.7, rank:"top25"},
+      {q:"sourdough lame scoring tool",      tag:null,  imp:"28,700",  clk:"2,300", ctr:8.0, rank:"top3"},
+    ],
+  },
+];
+
+let live = JSON.parse(JSON.stringify(defaultData));
+let cur = 0;
+let hasRun = false;
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function selectVideo(i) {
+  cur = i;
+  document.querySelectorAll('.video-card').forEach((c,j) => c.classList.toggle('selected', i===j));
+  render();
+}
+
+function render() {
+  const v = live[cur];
+
+  document.getElementById('metricsGrid').innerHTML = v.metrics.map(m => `
+    <div class="metric-card ${m.cls}">
+      <div class="metric-label">${m.label}</div>
+      <div class="metric-value">${m.value}</div>
+      <div class="metric-sub">${m.sub}</div>
+    </div>`).join('');
+
+  document.getElementById('trafficBars').innerHTML = v.traffic.map(t => `
+    <div class="source-row">
+      <div class="source-name ${t.hl?'hl':''}">${t.name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${t.pct}%;background:${t.color}"></div></div>
+      <div class="source-val ${t.hl?'hl':''}">${t.pct}%</div>
+    </div>`).join('');
+
+  document.getElementById('compBars').innerHTML = v.comp.map(c => `
+    <div class="comp-group">
+      <div class="comp-label">${c.label}</div>
+      <div class="comp-row">
+        <div class="comp-src" style="color:var(--tiktok)">Search</div>
+        <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${c.s.p}%;background:var(--tiktok)"></div></div>
+        <div class="comp-val" style="color:var(--tiktok)">${c.s.v}</div>
+      </div>
+      <div class="comp-row">
+        <div class="comp-src">FYP</div>
+        <div class="comp-bar-bg"><div class="comp-bar-fill" style="width:${c.f.p}%;background:rgba(255,255,255,0.15)"></div></div>
+        <div class="comp-val">${c.f.v}</div>
+      </div>
+    </div>`).join('');
+
+  const rm = {top3:['r-top3','Top 3'], top10:['r-top10','Top 10'], top25:['r-top25','Top 25']};
+  document.getElementById('queryTable').innerHTML = v.queries.map((q,i) => {
+    const [rc,rl] = rm[q.rank];
+    const tag = q.tag ? `<span class="q-tag tag-${q.tag}">${q.tag}</span>` : '';
+    const cc = q.ctr>=7 ? 'var(--green)' : q.ctr>=4 ? 'var(--amber)' : 'var(--tiktok)';
+    const cp = Math.min(q.ctr*10, 100);
+    const od = defaultData[cur].queries[i];
+    return `<div class="t-row">
+      <div class="q-cell">
+        <div class="q-num">${i+1}</div>
+        <div class="q-text">${q.q}</div>
+        ${tag}
+      </div>
+      <div class="td">
+        <span class="editable${q.imp!==od.imp?' changed':''}" contenteditable="true"
+          onblur="onEdit(this,${i},'imp')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${q.imp}</span>
+      </div>
+      <div class="td">
+        <span class="editable${q.clk!==od.clk?' changed':''}" contenteditable="true"
+          onblur="onEdit(this,${i},'clk')"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+        >${q.clk}</span>
+      </div>
+      <div class="td">
+        <div class="ctr-cell">
+          <div class="ctr-mini"><div class="ctr-fill" id="cf${i}" style="width:${cp}%;background:${cc}"></div></div>
+          <span class="editable${q.ctr!==od.ctr?' changed':''}" contenteditable="true"
+            id="cv${i}" style="color:${cc}"
+            onblur="onEdit(this,${i},'ctr')"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${q.ctr}%</span>
+        </div>
+      </div>
+      <div class="td"><span class="rank-badge ${rc}">${rl}</span></div>
+    </div>`;
+  }).join('');
+
+  checkModified();
+  resetAI();
+}
+
+// ─── EDIT HANDLER ─────────────────────────────────────────────────────────────
+function onEdit(el, rowIdx, field) {
+  const raw = el.textContent.trim().replace('%','');
+  const q = live[cur].queries[rowIdx];
+  const od = defaultData[cur].queries[rowIdx];
+
+  if (field === 'ctr') {
+    const n = parseFloat(raw);
+    if (isNaN(n) || n < 0 || n > 100) { el.textContent = q.ctr + '%'; return; }
+    q.ctr = n;
+    el.textContent = n + '%';
+    const cc = n>=7 ? 'var(--green)' : n>=4 ? 'var(--amber)' : 'var(--tiktok)';
+    const fill = document.getElementById('cf' + rowIdx);
+    const val  = document.getElementById('cv' + rowIdx);
+    if (fill) { fill.style.width = Math.min(n*10,100)+'%'; fill.style.background = cc; }
+    if (val)  val.style.color = cc;
+    el.classList.toggle('changed', n !== od.ctr);
+  } else if (field === 'imp') {
+    q.imp = raw;
+    el.classList.toggle('changed', raw !== od.imp);
+  } else if (field === 'clk') {
+    q.clk = raw;
+    el.classList.toggle('changed', raw !== od.clk);
+  }
+
+  checkModified();
+  if (hasRun) document.getElementById('rerunNote').classList.add('on');
+}
+
+function checkModified() {
+  const orig = defaultData[cur].queries;
+  const curr = live[cur].queries;
+  const changed = curr.some((q,i) =>
+    q.ctr !== orig[i].ctr || q.imp !== orig[i].imp || q.clk !== orig[i].clk
+  );
+  document.getElementById('modBadge').classList.toggle('on', changed);
+}
+
+function resetDefaults() {
+  live[cur] = JSON.parse(JSON.stringify(defaultData[cur]));
+  render();
+  document.getElementById('rerunNote').classList.remove('on');
+}
+
+function resetAI() {
+  document.getElementById('aiPlaceholder').style.display = 'flex';
+  document.getElementById('aiLoading').style.display = 'none';
+  document.getElementById('aiResults').classList.remove('on');
+  document.getElementById('aiResults').innerHTML = '';
+  document.getElementById('analyzeBtn').disabled = false;
+  document.getElementById('rerunNote').classList.remove('on');
+  hasRun = false;
+}
+
+// ─── AI CALL ──────────────────────────────────────────────────────────────────
+// Calls /api/diagnose — the proxy handles the Gemini API key securely
+async function runAnalysis() {
+  const btn = document.getElementById('analyzeBtn');
+  btn.disabled = true;
+  document.getElementById('rerunNote').classList.remove('on');
+  document.getElementById('aiPlaceholder').style.display = 'none';
+  document.getElementById('aiLoading').style.display = 'flex';
+  document.getElementById('aiResults').classList.remove('on');
+
+  const v = live[cur];
+
+  const systemPrompt = `You are a TikTok search performance analyst. Diagnose a creator's search data with precision. Always cite specific numbers.
+
+BENCHMARKS:
+- Healthy CTR: 6–10%
+- CTR below 3% + 100K+ impressions = thumbnail/title mismatch (click problem)
+- CTR below 3% + low impressions = ranking problem
+- Top 3 drives 3–5x more clicks than Top 25
+- Search above 40% of total views = search-dominant content (great for longevity)
+- Search viewers watch 30–60% more than FYP viewers
+
+Return a JSON array of 2–3 objects with this exact structure:
+[
+  {
+    "type": "problem" or "positive" or "opportunity",
+    "icon": "⚠️" or "✅" or "💡" or "📈",
+    "headline": "3 to 5 words",
+    "content": "2 to 3 sentences. Name the exact query and exact numbers. Compare to benchmarks.",
+    "action": "One concrete step. Say exactly what to change or create."
+  }
+]
+
+RULES: Always name exact query and numbers. Never give generic advice. Return ONLY valid JSON, nothing else.`;
+
+  const dataContext = `
+VIDEO: "${v.title}" (Posted ${v.date}, ${v.duration})
+
+METRICS:
+- Search Views: ${v.metrics[0].value} (${v.metrics[0].sub})
+- Impressions: ${v.metrics[1].value}
+- Avg Search CTR: ${v.metrics[2].value}
+- Ranking Queries: ${v.metrics[3].value}
+
+TRAFFIC SOURCES:
+${v.traffic.map(t => `- ${t.name}: ${t.pct}%`).join('\n')}
+
+SEARCH VS FYP COMPARISON:
+${v.comp.map(c => `- ${c.label}: Search=${c.s.v}, FYP=${c.f.v}`).join('\n')}
+
+SEARCH QUERIES (current values — may have been edited live):
+${v.queries.map((q,i) => `${i+1}. "${q.q}" | Impressions: ${q.imp} | Clicks: ${q.clk} | CTR: ${q.ctr}% | Rank: ${q.rank.replace('top','Top ')}`).join('\n')}
+`.trim();
+
+  try {
+    // This calls the proxy at /api/diagnose, which adds the API key and calls Gemini
+    const res = await fetch('/api/diagnose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ systemPrompt, dataContext })
+    });
+
+    const data = await res.json();
+
+    // Gemini returns text at this path
+    const rawText = data.candidates[0].content.parts[0].text
+      .trim()
+      .replace(/```json|```/g, '')
+      .trim();
+
+    const diagnostics = JSON.parse(rawText);
+
+    document.getElementById('aiLoading').style.display = 'none';
+    renderDiagnostics(diagnostics);
+    hasRun = true;
+    btn.disabled = false;
+
+  } catch(err) {
+    document.getElementById('aiLoading').style.display = 'none';
+    document.getElementById('aiResults').innerHTML = `
+      <div class="diagnosis-card dc-neutral">
+        <div class="dc-header"><span class="dc-icon">⚠️</span><span class="dc-type">Connection Error</span></div>
+        <div class="dc-content">Could not reach the AI service. Make sure the project is deployed on Vercel and the GEMINI_API_KEY environment variable is set.</div>
+      </div>`;
+    document.getElementById('aiResults').classList.add('on');
+    btn.disabled = false;
+  }
+}
+
+function renderDiagnostics(diagnostics) {
+  const typeMap = {
+    problem:     { cls:'dc-problem',     label:'Problem Identified' },
+    positive:    { cls:'dc-positive',    label:"What's Working"     },
+    opportunity: { cls:'dc-opportunity', label:'Opportunity'        },
+    neutral:     { cls:'dc-neutral',     label:'Observation'        },
+  };
+  document.getElementById('aiResults').innerHTML = diagnostics.map(d => {
+    const { cls, label } = typeMap[d.type] || typeMap.neutral;
+    return `<div class="diagnosis-card ${cls}">
+      <div class="dc-header">
+        <span class="dc-icon">${d.icon}</span>
+        <span class="dc-type">${label} — ${d.headline}</span>
+      </div>
+      <div class="dc-content">${d.content}</div>
+      <div class="dc-action"><strong>Action:</strong> ${d.action}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('aiResults').classList.add('on');
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
