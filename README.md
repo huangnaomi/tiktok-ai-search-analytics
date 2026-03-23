@@ -1,11 +1,11 @@
-# TikTok Search Analytics — AI Diagnostic Tool
+# TikTok Search Analytics: AI Diagnostic Tool
 
 A product concept prototype demonstrating AI-powered search analytics for TikTok Studio.
 
 ## What this is
 
 A working prototype of a "Search Analytics" tab for TikTok Studio that doesn't exist yet.
-Built to demonstrate the product concept for a TikTok AI PM role application.
+Built to demonstrate the product concept for TikTok AI PM role application.
 
 **Features:**
 - Per-video search analytics dashboard
