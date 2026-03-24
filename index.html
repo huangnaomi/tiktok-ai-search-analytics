@@ -68,7 +68,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .video-thumb{width:34px;height:46px;border-radius:4px;flex-shrink:0;overflow:hidden;position:relative;}
 .vt-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 .vt-bg.v1{background-image:url('https://images.unsplash.com/photo-1509440159596-0249088772ff?w=80&h=120&fit=crop&auto=format');}
-.vt-bg.v2{background-image:url('https://images.pexels.com/photos/1070946/pexels-photo-1070946.jpeg?auto=compress&cs=tinysrgb&w=80&h=120&fit=crop');}
+.vt-bg.v2{background-image:url('https://images.unsplash.com/photo-1565181952816-73c05f6aec36?w=80&h=120&fit=crop&auto=format');}
 .vt-bg.v3{background-image:url('https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=80&h=120&fit=crop&auto=format');}
 .vt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;background:rgba(0,0,0,0.25);}
 .vc-info{flex:1;min-width:0;}
@@ -181,8 +181,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:14
 .dc-neutral .dc-type{color:var(--amber);}
 .dc-content{font-size:13px;line-height:1.6;color:#565656;}
 .dc-content strong{color:var(--text);}
-.dc-action{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);font-size:12px;color:var(--blue);line-height:1.5;}
-.dc-action strong{color:var(--blue);}
+.dc-action{margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,0.05);font-size:12px;color:#565656;line-height:1.5;}
+.dc-action strong{color:#0A0A0A;}
 .ai-footer{display:flex;align-items:center;gap:6px;padding:9px 18px;border-top:1px solid rgba(254,39,75,0.08);background:rgba(254,39,75,0.02);}
 .ai-footer-dot{width:4px;height:4px;border-radius:50%;background:var(--ai);opacity:0.35;}
 .ai-footer-text{font-size:11px;color:var(--text3);}
@@ -731,19 +731,19 @@ ${v.queries.map((q,i) => `${i+1}. "${q.q}" | Impressions: ${q.imp} | Clicks: ${q
     document.getElementById('aiLoading').style.display = 'none';
 
     const typeMap = {
-      problem:     { cls:'dc-problem',     label:'Problem Identified', cta:'Edit this video →', ctaColor:'var(--red)' },
-      positive:    { cls:'dc-positive',    label:"What's Working",     cta:'Keep creating →',   ctaColor:'var(--green)' },
-      opportunity: { cls:'dc-opportunity', label:'Opportunity',        cta:'Open Creator Search →', ctaColor:'#565656' },
-      neutral:     { cls:'dc-neutral',     label:'Observation',        cta:'View full analytics →', ctaColor:'var(--amber)' },
+      problem:     { cls:'dc-problem',     label:'Problem Identified', cta:'Edit this video →'        },
+      positive:    { cls:'dc-positive',    label:"What's Working",     cta:'Keep creating →'          },
+      opportunity: { cls:'dc-opportunity', label:'Opportunity',        cta:'Open Creator Search →'    },
+      neutral:     { cls:'dc-neutral',     label:'Observation',        cta:'View full analytics →'    },
     };
     document.getElementById('aiResults').innerHTML = diagnostics.map(d => {
-      const { cls, label, cta, ctaColor } = typeMap[d.type] || typeMap.neutral;
+      const { cls, label, cta } = typeMap[d.type] || typeMap.neutral;
       return `<div class="diagnosis-card ${cls}">
         <div class="dc-header"><span class="dc-icon">${d.icon}</span><span class="dc-type">${label} — ${d.headline}</span></div>
         <div class="dc-content">${d.content}</div>
         <div class="dc-action"><strong>Action:</strong> ${d.action}</div>
         <div style="margin-top:10px;">
-          <button onclick="void(0)" style="font-family:var(--font);font-size:11px;font-weight:600;color:${ctaColor};background:none;border:1px solid ${ctaColor};padding:4px 10px;border-radius:4px;cursor:pointer;opacity:0.85;transition:opacity 0.15s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.85'">${cta}</button>
+          <button onclick="void(0)" style="font-family:var(--font);font-size:11px;font-weight:500;color:#0A0A0A;background:none;border:1px solid #CCCCCC;padding:4px 10px;border-radius:4px;cursor:pointer;transition:border-color 0.15s;" onmouseover="this.style.borderColor='#0A0A0A'" onmouseout="this.style.borderColor='#CCCCCC'">${cta}</button>
         </div>
       </div>`;
     }).join('');
